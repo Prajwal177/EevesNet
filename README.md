@@ -31,25 +31,33 @@ The Qt kit, compiler, vcpkg triplet, Npcap libraries, and build architecture mus
 
 ## Configure and build
 
-Open a Visual Studio Developer PowerShell configured for x64, then configure with the paths for your local Qt and Npcap SDK installations:
+Open **Developer PowerShell for Visual Studio** with the x64 MSVC tools available. Install Ninja and ensure it is on `PATH`. Set `VCPKG_ROOT` to a full vcpkg checkout (the vcpkg toolchain file must exist under `scripts/buildsystems`). Then configure using paths for your local Qt and Npcap SDK installations:
 
 ```powershell
-cmake -S . -B build -G Ninja `
-  -DCMAKE_BUILD_TYPE=Release `
-  -DCMAKE_PREFIX_PATH="C:/Qt/6.x.x/msvc2022_64" `
-  -DNPCAP_SDK_ROOT="C:/npcap-sdk" `
+$env:VCPKG_ROOT = "C:/path/to/vcpkg"
+
+cmake -S . -B out/build/x64-Debug -G Ninja `
+  -DCMAKE_BUILD_TYPE=Debug `
+  -DCMAKE_PREFIX_PATH="C:/Qt/6.12.0/msvc2022_64" `
+  -DNPCAP_SDK_ROOT="C:/path/to/npcap-sdk" `
   -DVCPKG_TARGET_TRIPLET=x64-windows
 
-cmake --build build
+cmake --build out/build/x64-Debug
 ```
 
-The project selects the vcpkg toolchain from `VCPKG_ROOT` or the `vcpkg` executable on `PATH`. If CMake cannot locate Qt, set `Qt6_DIR` to the Qt kit's `lib/cmake/Qt6` directory. If Npcap SDK discovery fails, capture support is disabled with a warning; set `NPCAP_SDK_ROOT` to the extracted SDK root.
+Replace the example paths with the locations on your machine. The Qt kit, MSVC compiler, vcpkg triplet, Npcap libraries, and build architecture must all be x64 (or all match another supported architecture). The manifest installs `libmaxminddb`; its CMake toolchain must be active during the first configure. If CMake cannot locate Qt, set `Qt6_DIR` to the kit's `lib/cmake/Qt6` directory. If Npcap SDK discovery fails, CMake warns and capture support is disabled; set `NPCAP_SDK_ROOT` to the extracted SDK root. The Npcap runtime/driver is required at run time for capture.
 
-To build the UI without Npcap discovery, add `-DEEVESNET_ENABLE_NPCAP=OFF`.
+The embedded Leaflet dashboard is enabled only when the matching **Qt WebEngineWidgets** component is installed for the selected Qt kit. Install it through Qt Maintenance Tool before configuring to display the map; without WebEngine the app builds but displays a notice in the Dashboard. To build without Npcap discovery, add `-DEEVESNET_ENABLE_NPCAP=OFF`.
 
 ## Run
 
-Run the generated `EevesNet.exe`. If Npcap is installed, select an adapter and choose **Start capture**. Depending on the local Npcap configuration, administrator permissions may be required. Use **Stop capture** to end capture.
+After the build succeeds, run the executable from the same PowerShell session:
+
+```powershell
+& .\out\build\x64-Debug\EevesNet.exe
+```
+
+For a Release configuration, use the Release build directory and its executable path instead. CMake runs `windeployqt` after linking to copy Qt runtime dependencies beside the executable. If Npcap is installed and capture support was enabled at configure time, select an adapter and choose **Start capture**. Depending on the local Npcap configuration, administrator permissions may be required. Use **Stop capture** to end capture.
 
 The map uses the ArcGIS World Street Map tile service and Leaflet assets from a CDN, so it requires internet access. It does not require a MapTiler API key. Esri attribution is displayed on the map.
 
@@ -60,7 +68,3 @@ The map uses the ArcGIS World Street Map tile service and Leaflet assets from a 
 - The map is a basemap only; captured endpoints are not currently plotted on it.
 - GeoIP city/country lookup, process attribution, reverse DNS, and recording/replay are not currently integrated into this C++ application.
 - The embedded map requires Qt WebEngine and an internet connection; it does not work offline.
-
-## License
-
-No repository license is currently specified. Add a `LICENSE` file before distributing or accepting contributions under an open-source license.
