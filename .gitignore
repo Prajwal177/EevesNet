@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+
+# Keep the public GitHub overview, but exclude internal and local Markdown docs.
+PROJECT_HANDOFF.md
+docs/
+
+# Visual Studio and generated local build/dependency files.
+.vs/
+out/
+build/
+vcpkg_installed/
+
+# Local SDK and GeoIP database; install/provide these separately.
+npcap-sdk/
+GeoLite2-City.mmdb
